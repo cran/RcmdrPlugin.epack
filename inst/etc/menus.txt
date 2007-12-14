@@ -1,0 +1,36 @@
+# Some Rcmdr menus for the epack package
+# When the plug-in is loaded, these menus are merged with the standard Rcmdr menus
+
+# last modified: 16 May 2007 by J. Fox
+
+#   type    menu/item      operation/parent  label                              command/menu                activation    install?
+menu    tsdMenu       topMenu         ""                                      ""                          ""                      "" 
+item    tsdMenu       command         "Time Series Conversion"              tsConv         "activeDataSetP()"                      "packageAvailable('tseries')"
+
+item    tsdMenu       command         "Historical Monthly Stock Prices"              newHistPrice         ""                      "packageAvailable('tseries')"
+item    tsdMenu       command         "Time Series Plots"              opMod         "activeDataSetP()"                      "packageAvailable('tseries')"
+
+item    tsdMenu       command         "Box Cox Trans"              bcMod         "activeDataSetP()"                      "packageAvailable('MASS')"
+
+item    topMenu         cascade         "Ts-Data"                                 tsdMenu                   ""                      "packageAvailable('TeachingDemos')"
+
+menu    tsmMenu       topMenu         ""                                      ""                          ""                      "" 
+
+item    tsmMenu       command         "Multiplicative Decomposition"              decomMod         "activeDataSetP()"                      "packageAvailable('tseries')"
+
+item    tsmMenu       command         "Autocorrelation Plots"              acfMod         "activeDataSetP()"                      "packageAvailable('tseries')"
+
+item    tsmMenu       command         "Partial Autocorrelation Plots"              pacfMod         "activeDataSetP()"                      "packageAvailable('tseries')"
+
+item    tsmMenu       command         "ARIMA Models..."              ArimaMod         "activeDataSetP()"                      "packageAvailable('tseries')"
+item    tsmMenu       command         "ARIMA Forecasts..."              predARModel         "activeDataSetP()"                      "packageAvailable('tseries')"
+item    tsmMenu       command         "Forecast Accuracy"              foreMod         "activeDataSetP()"                      "packageAvailable('tseries')"
+
+item    topMenu         cascade         "Ts-Models"                                 tsmMenu                   ""                      "packageAvailable('TeachingDemos')"
+       
+menu    tsfMenu       topMenu         ""                                      ""                          ""                      "" 
+item    tsfMenu       command         " Spectral Density Plots"              specMod         "activeDataSetP()"                      "packageAvailable('tseries')"
+
+item    tsfMenu       command         "GARCH Models"              garchMod         "activeDataSetP()"                      "packageAvailable('tseries')"
+
+item    topMenu         cascade         "Ts-Other"                                 tsfMenu                   ""                      "packageAvailable('TeachingDemos')"
