@@ -31,7 +31,7 @@
 \alias{HoltWintersMod}
 \alias{HoltWintersNonMod}
 \alias{listHoltWintersModels}
-\alias{predHWModel}
+\alias{predAllModel}
 
 
 \description{Internal RcmdrepackPlugin objects.}

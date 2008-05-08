@@ -145,7 +145,7 @@ initializeDialog(title=gettextRcmdr("ARIMA Simulation"))
 ArimaMod <- function(){
  initializeDialog(title=gettextRcmdr("ARIMA Models"))
    .activeModel <- ActiveModel()
-	print(.activeModel)
+
     currentModel <- if (!is.null(.activeModel)) 
         eval(parse(text=paste("class(", .activeModel, ")[1] == 'Arima'", sep="")), 
             envir=.GlobalEnv) 
@@ -338,6 +338,7 @@ newHistPrice <- function() {
 	command <- paste('histprice2(inst1="',tick2,'",quot1="',alt1,'",start1="',starta,'",end1="',enda,'")',
 	sep="")
 	assign(dsnameValue, justDoIt(command), envir=.GlobalEnv)
+
         logger(paste(dsnameValue, "<-", command))
       if (eval(parse(text=paste("nrow(", dsnameValue, ")"))) == 0){
             errorCondition(recall=newHistPrice, message=gettextRcmdr("empty data set."))
@@ -551,7 +552,7 @@ listGARCHModels <- function(envir=.GlobalEnv, ...) {
 
 
 selectActiveARModel <- function(){
-    models <- listArimaModels()
+    models <- listAllModels()
     .activeModel <- ActiveModel()
    if ((length(models) == 1) && !is.null(.activeModel)) {
        Message(message=gettextRcmdr("There is only one model in memory."),
@@ -607,8 +608,8 @@ selectActiveARModel <- function(){
 
 
 predARModel <- function(){
-    models <- listArimaModels()
-    .activeModel <- ActiveModel()
+    models <- listAllModels()
+     .activeModel <- ActiveModel()
     if ((length(models) == 1) && !is.null(.activeModel)) {
         Message(message=gettextRcmdr("There is only one model in memory."),
                 type="warning")
@@ -1332,8 +1333,9 @@ HoltWintersExpoMod <- function(){
     }
 
 
-predHWModel <- function(){
-    models <- listHoltWintersModels()
+
+predAllModel <- function(){
+    models <- listAllModels()
     .activeModel <- ActiveModel()
     if ((length(models) == 1) && !is.null(.activeModel)) {
         Message(message=gettextRcmdr("There is only one model in memory."),
@@ -1347,7 +1349,7 @@ predHWModel <- function(){
         tkfocus(CommanderWindow())
         return()
         }
-    initializeDialog(title=gettextRcmdr("HW Forecasting"))
+    initializeDialog(title=gettextRcmdr("Forecasting"))
     .activeDataSet <- ActiveDataSet()
     initial <- if (is.null(.activeModel)) NULL else which(.activeModel == models) - 1
     modelsBox <- variableListBox(top, models, title=gettextRcmdr("Models (pick one)"), 
@@ -1362,8 +1364,17 @@ predHWModel <- function(){
      activeModel(model)
      fore1 <- tclvalue(foreVariable)
         closeDialog()
-        doItAndPrint(paste("predict(", model,",n.ahead=",fore1,
+ if(  eval(parse(text=paste("class(", model, ")[1] == 'HoltWinters'", sep="")), 
+            envir=.GlobalEnv)) {
+     
+
+doItAndPrint(paste("predict(", model,",prediction.interval=T,n.ahead=",fore1,
             ")", sep=""))
+	}
+	else {
+	       doItAndPrint(paste("predar3(", model,",fore1=",fore1,
+            ")", sep=""))
+  	}
         tkdestroy(top)
       tkfocus(CommanderWindow())
         }
@@ -1383,3 +1394,4 @@ predHWModel <- function(){
     tkgrid(buttonsFrame, columnspan=2, sticky="w")
     dialogSuffix(rows=3, columns=2)
     }
+
