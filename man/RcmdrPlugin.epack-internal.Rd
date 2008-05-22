@@ -22,6 +22,11 @@
 \alias{selectActiveARModel}
 \alias{specMod}
 \alias{tsConv}
+\alias{decom6}
+\alias{hwseasMod}
+\alias{hwnonseasMod}
+\alias{hwexpoMod}
+\alias{decomaMod}
 
 
 \description{Internal RcmdrepackPlugin objects.}
