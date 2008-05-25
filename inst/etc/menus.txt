@@ -43,13 +43,17 @@ item    ts2Menu       command         "GARCH Models"                 garchMod   
 
 menu    ts3Menu       tsmMenu         ""                                      ""                          ""    	""
 item    ts3Menu       command         "ARIMA Forecasts"              predARModel         "activeDataSetP()"                      "packageAvailable('tseries')"
+
+item    ts3Menu       command          "Holt Winters Forecasts"              predHWModel         "activeDataSetP()"                      "packageAvailable('tseries')"
+
+
 item    ts3Menu       command         "Fore. Accuracy"                 foreMod         "activeDataSetP()"                      "packageAvailable('tseries')"
 
 menu    ts4Menu       tsmMenu         ""                                      ""                          ""    	""
-item    ts4Menu       command         "Seasonal Holt Winters"              hwseasMod         "activeDataSetP()"                      "packageAvailable('tseries')"
-item    ts4Menu       command         "Non-seasonal Holt Winters"                 hwnonseasMod         "activeDataSetP()"                      "packageAvailable('tseries')"
+item    ts4Menu       command         "Seasonal Holt Winters"              HoltWintersMod         "activeDataSetP()"                      "packageAvailable('tseries')"
+item    ts4Menu       command         "Non-seasonal Holt Winters"                 HoltWintersNonMod         "activeDataSetP()"                      "packageAvailable('tseries')"
 
-item    ts4Menu       command         "Exponential Smoothing"                 hwexpoMod         "activeDataSetP()"                      "packageAvailable('tseries')"
+item    ts4Menu       command         "Exponential Smoothing"                 HoltWintersExpoMod         "activeDataSetP()"                      "packageAvailable('tseries')"
 
 
 item    tsmMenu         cascade        "Forecasts"                                 ts3Menu                   ""                      "packageAvailable('TeachingDemos')"

@@ -1,6 +1,6 @@
 # Some Rcmdr dialogs for the epack package
 
-# last modified: November 24, 2007 by E. Hodgess
+# last modified: May 25, 2008 by E. Hodgess
 
 # Note: the following function (with contributions from Richard Heiberger) 
 # can be included in any Rcmdr plug-in package to cause the package to load
@@ -1071,7 +1071,7 @@ hwseasMod <- function(){
 
 
 hwnonseasMod <- function(){
-  initializeDialog(title=gettextRcmdr("Seasonal Holt Winters Filter"))
+  initializeDialog(title=gettextRcmdr("Non-Seasonal Holt Winters Filter"))
     xBox <- variableListBox(top, Numeric(), title=gettextRcmdr("Variable (pick one)"))
     onOK <- function(){
         x <- getSelection(xBox)
@@ -1111,4 +1111,275 @@ hwexpoMod <- function(){
    tkgrid(getFrame(xBox), sticky="nw") 
     tkgrid(buttonsFrame, columnspan=2, sticky="w")
      dialogSuffix(rows=4, columns=2)
+    }
+
+HoltWintersMod <- function(){
+ initializeDialog(title=gettextRcmdr("Seasonal HoltWinters Models"))
+   .activeModel <- ActiveModel()
+	print(.activeModel)
+    currentModel <- if (!is.null(.activeModel)) 
+        eval(parse(text=paste("class(", .activeModel, ")[1] == 'HoltWinters'", sep="")), 
+            envir=.GlobalEnv) 
+        else FALSE
+   UpdateModelNumber()
+   modelName <- tclVar(paste("HoltWintersModel.", getRcmdr("modelNumber"), sep=""))
+   modelFrame <- tkframe(top)
+    model <- tkentry(modelFrame, width="20", textvariable=modelName)
+  xBox <- variableListBox(top, Numeric(), title=gettextRcmdr("Variable (pick one)"))
+  
+    onOK <- function(){
+        modelValue <- trim.blanks(tclvalue(modelName))
+          if (!is.valid.name(modelValue)){
+            errorCondition(recall=HoltWintersMod, message=sprintf(gettextRcmdr('"%s" is not a valid name.'), modelValue), model=TRUE)
+            return()
+            }
+	         x <- getSelection(xBox)
+       if (length(x) == 0){
+            errorCondition(recall=HoltWintersMod, message=gettextRcmdr("You must select a variable."))
+            return()
+            }
+    alternative <- as.character(tclvalue(alternativeVariable))
+ 	 closeDialog() 
+    
+       if (is.element(modelValue, listHoltWintersModels())) {
+            if ("no" == tclvalue(checkReplace(modelValue, type=gettextRcmdr("Model")))){
+                UpdateModelNumber(-1)
+                HoltWintersMod
+                return()
+                }
+            }
+         
+  pd1 <- paste("tsp(",ActiveDataSet(),"$",x,")[3]",sep="")
+	
+	assign("pd2",justDoIt(pd1),envir=.GlobalEnv)
+		sea2 <- as.character(ifelse(alternative==1,"add","mult"))
+	
+   command <- paste("HoltWinters(", ActiveDataSet(), "$", x,",
+	   seasonal='", alternative, "')", sep="")
+       	
+			
+ 	   
+ 
+  logger(paste(modelValue, " <- ", command, sep=""))
+        assign(modelValue, justDoIt(command), envir=.GlobalEnv)
+        doItAndPrint(modelValue)
+           activeModel(modelValue)
+    
+
+         tkdestroy(top)
+        tkfocus(CommanderWindow())
+        }
+    OKCancelHelp(helpSubject="HoltWinters")
+   radioButtons(top, name="alternative", buttons=c("yes","no"), values=c("add","mult"),
+        labels=gettextRcmdr(c("Additive", "Multiplicative")), 
+        title=gettextRcmdr("Seasonal Coefficients"))
+      rightFrame <- tkframe(top)
+  
+ 
+
+ tkgrid(tklabel(modelFrame, text=gettextRcmdr("Enter name for model:")), model, sticky="w")
+    tkgrid(modelFrame, sticky="w")
+     tkgrid(getFrame(xBox), sticky="nw") 
+    tkgrid(tklabel(rightFrame, text=""), sticky="w")   
+
+
+   tkgrid(alternativeFrame, rightFrame, sticky="nw")
+ 
+    tkgrid(buttonsFrame, columnspan=2, sticky="w")
+    dialogSuffix(rows=6, columns=2)
+    }
+
+listHoltWintersModels <- function(envir=.GlobalEnv, ...) {
+    objects <- ls(envir=envir, ...)
+    if (length(objects) == 0) NULL
+    else objects[sapply(objects, 
+        function(.x) "HoltWinters" == (class(eval(parse(text=.x), envir=envir))[1]))]
+    }
+
+HoltWintersNonMod <- function(){
+ initializeDialog(title=gettextRcmdr("HoltWinters NonSeasonal Models"))
+   .activeModel <- ActiveModel()
+	print(.activeModel)
+    currentModel <- if (!is.null(.activeModel)) 
+        eval(parse(text=paste("class(", .activeModel, ")[1] == 'HoltWinters'", sep="")), 
+            envir=.GlobalEnv) 
+        else FALSE
+   UpdateModelNumber()
+   modelName <- tclVar(paste("HoltWintersModel.", getRcmdr("modelNumber"), sep=""))
+   modelFrame <- tkframe(top)
+    model <- tkentry(modelFrame, width="20", textvariable=modelName)
+  xBox <- variableListBox(top, Numeric(), title=gettextRcmdr("Variable (pick one)"))
+  
+    onOK <- function(){
+        modelValue <- trim.blanks(tclvalue(modelName))
+          if (!is.valid.name(modelValue)){
+            errorCondition(recall=HoltWintersMod, message=sprintf(gettextRcmdr('"%s" is not a valid name.'), modelValue), model=TRUE)
+            return()
+            }
+	         x <- getSelection(xBox)
+       if (length(x) == 0){
+            errorCondition(recall=HoltWintersMod, message=gettextRcmdr("You must select a variable."))
+            return()
+            }
+  	 closeDialog() 
+    
+       if (is.element(modelValue, listHoltWintersModels())) {
+            if ("no" == tclvalue(checkReplace(modelValue, type=gettextRcmdr("Model")))){
+                UpdateModelNumber(-1)
+                HoltWintersMod
+                return()
+                }
+            }
+         
+ 	
+   command <- paste("HoltWinters(", ActiveDataSet(), "$", x,",
+	   gamma=0)", sep="")
+       	
+			
+ 	   
+ 
+  logger(paste(modelValue, " <- ", command, sep=""))
+        assign(modelValue, justDoIt(command), envir=.GlobalEnv)
+        doItAndPrint(modelValue)
+           activeModel(modelValue)
+    
+
+         tkdestroy(top)
+        tkfocus(CommanderWindow())
+        }
+    OKCancelHelp(helpSubject="HoltWinters")
+     rightFrame <- tkframe(top)
+  
+ 
+
+ tkgrid(tklabel(modelFrame, text=gettextRcmdr("Enter name for model:")), model, sticky="w")
+    tkgrid(modelFrame, sticky="w")
+     tkgrid(getFrame(xBox), sticky="nw") 
+    tkgrid(tklabel(rightFrame, text=""), sticky="w")   
+
+
+  
+    tkgrid(buttonsFrame, columnspan=2, sticky="w")
+    dialogSuffix(rows=6, columns=2)
+    }
+
+
+HoltWintersExpoMod <- function(){
+ initializeDialog(title=gettextRcmdr("Exponential Smoothing Models"))
+   .activeModel <- ActiveModel()
+	print(.activeModel)
+    currentModel <- if (!is.null(.activeModel)) 
+        eval(parse(text=paste("class(", .activeModel, ")[1] == 'HoltWinters'", sep="")), 
+            envir=.GlobalEnv) 
+        else FALSE
+   UpdateModelNumber()
+   modelName <- tclVar(paste("HoltWintersModel.", getRcmdr("modelNumber"), sep=""))
+   modelFrame <- tkframe(top)
+    model <- tkentry(modelFrame, width="20", textvariable=modelName)
+  xBox <- variableListBox(top, Numeric(), title=gettextRcmdr("Variable (pick one)"))
+  
+    onOK <- function(){
+        modelValue <- trim.blanks(tclvalue(modelName))
+          if (!is.valid.name(modelValue)){
+            errorCondition(recall=HoltWintersMod, message=sprintf(gettextRcmdr('"%s" is not a valid name.'), modelValue), model=TRUE)
+            return()
+            }
+	         x <- getSelection(xBox)
+       if (length(x) == 0){
+            errorCondition(recall=HoltWintersMod, message=gettextRcmdr("You must select a variable."))
+            return()
+            }
+  	 closeDialog() 
+    
+       if (is.element(modelValue, listHoltWintersModels())) {
+            if ("no" == tclvalue(checkReplace(modelValue, type=gettextRcmdr("Model")))){
+                UpdateModelNumber(-1)
+                HoltWintersMod
+                return()
+                }
+            }
+         
+ 	
+   command <- paste("HoltWinters(", ActiveDataSet(), "$", x,",
+	   gamma=0,beta=0)", sep="")
+       	
+			
+ 	   
+ 
+  logger(paste(modelValue, " <- ", command, sep=""))
+        assign(modelValue, justDoIt(command), envir=.GlobalEnv)
+        doItAndPrint(modelValue)
+           activeModel(modelValue)
+    
+
+         tkdestroy(top)
+        tkfocus(CommanderWindow())
+        }
+    OKCancelHelp(helpSubject="HoltWinters")
+     rightFrame <- tkframe(top)
+  
+ 
+
+ tkgrid(tklabel(modelFrame, text=gettextRcmdr("Enter name for model:")), model, sticky="w")
+    tkgrid(modelFrame, sticky="w")
+     tkgrid(getFrame(xBox), sticky="nw") 
+    tkgrid(tklabel(rightFrame, text=""), sticky="w")   
+
+
+  
+    tkgrid(buttonsFrame, columnspan=2, sticky="w")
+    dialogSuffix(rows=6, columns=2)
+    }
+
+
+predHWModel <- function(){
+    models <- listHoltWintersModels()
+    .activeModel <- ActiveModel()
+    if ((length(models) == 1) && !is.null(.activeModel)) {
+        Message(message=gettextRcmdr("There is only one model in memory."),
+                type="warning")
+        tkfocus(CommanderWindow())
+        return()
+        }
+    if (length(models) == 0){
+        Message(message=gettextRcmdr("There are no models from which to choose."),
+                type="error")
+        tkfocus(CommanderWindow())
+        return()
+        }
+    initializeDialog(title=gettextRcmdr("HW Forecasting"))
+    .activeDataSet <- ActiveDataSet()
+    initial <- if (is.null(.activeModel)) NULL else which(.activeModel == models) - 1
+    modelsBox <- variableListBox(top, models, title=gettextRcmdr("Models (pick one)"), 
+        initialSelection=initial)
+    onOK <- function(){
+        model <- getSelection(modelsBox)
+        closeDialog()
+        if (length(model) == 0) {
+            tkfocus(CommanderWindow())
+            return()
+	}
+     activeModel(model)
+     fore1 <- tclvalue(foreVariable)
+        closeDialog()
+        doItAndPrint(paste("predict(", model,",n.ahead=",fore1,
+            ")", sep=""))
+        tkdestroy(top)
+      tkfocus(CommanderWindow())
+        }
+    OKCancelHelp()
+    nameFrame <- tkframe(top)
+  foreFrame <- tkframe(top)
+    foreVariable <- tclVar("1")
+    foreField <- tkentry(foreFrame, width="8", textvariable=foreVariable)
+  
+    tkgrid(tklabel(nameFrame, fg="blue", text=gettextRcmdr("Current Model: ")), 
+        tklabel(nameFrame, text=tclvalue(getRcmdr("modelName"))), sticky="w")
+    tkgrid(nameFrame, sticky="w", columnspan="2")
+    tkgrid(getFrame(modelsBox), columnspan="2", sticky="w")
+   tkgrid(tklabel(foreFrame, text=gettextRcmdr("Number of Forecasts: ")), foreField, sticky="w")
+    tkgrid(foreFrame, sticky="w")
+  
+    tkgrid(buttonsFrame, columnspan=2, sticky="w")
+    dialogSuffix(rows=3, columns=2)
     }

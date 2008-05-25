@@ -27,6 +27,11 @@
 \alias{hwnonseasMod}
 \alias{hwexpoMod}
 \alias{decomaMod}
+\alias{HoltWintersExpoMod}
+\alias{HoltWintersMod}
+\alias{HoltWintersNonMod}
+\alias{listHoltWintersModels}
+\alias{predHWModel}
 
 
 \description{Internal RcmdrepackPlugin objects.}
