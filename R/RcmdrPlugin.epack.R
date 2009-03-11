@@ -900,13 +900,16 @@ tsConv <- function(){
 		freq1,")",sep="")
     
  
-  logger(paste(comm1, " <- ", command, sep=""))
-        assign(comm1, justDoIt(command), envir=.GlobalEnv)
+ # logger(paste(comm1, " <- ", command, sep=""))
+	comm2 <- paste(comm1, " <- ", command, sep="")
+     #  assign(comm1, justDoIt(command), envir=.GlobalEnv)
+   doItAndPrint(comm2)
+      
  
       tkdestroy(top)
         tkfocus(CommanderWindow())
         }
-    OKCancelHelp(helpSubject="t.test")
+    OKCancelHelp(helpSubject="ts")
     yearFrame <- tkframe(top)
     yearVariable <- tclVar("2000")
     yearField <- tkentry(yearFrame, width="6", textvariable=yearVariable)
