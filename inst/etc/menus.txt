@@ -11,6 +11,10 @@ item    tsdMenu       command         "Historical Monthly Stock Prices"         
 
 item    tsdMenu       command         "Box Cox Trans"              bcMod         "activeDataSetP()"                      "packageAvailable('MASS')"
 
+item    tsdMenu       command         "Edit TS Data"              editTSframe         ""                      "packageAvailable('relimp')"
+
+
+
 item    topMenu         cascade         "Ts-Data"                                 tsdMenu                   ""                      "packageAvailable('TeachingDemos')"
 
  
@@ -29,12 +33,17 @@ item    graphsMenu       command         "epack-Spectral Density Plots"         
 
 menu    tsmMenu       topMenu         ""                                      ""                          ""    	""
 
+item    tsmMenu         command        "Run Multiple ARMA"                                 runbulk                   "activeDataSetP()"                      "packageAvailable('TeachingDemos')"
+item    tsmMenu         command        "Run Multiple GARCH"                                 runbulkg                   "activeDataSetP()"                      "packageAvailable('TeachingDemos')"
+
+
 
 item    topMenu         cascade         "Ts-Models"                                 tsmMenu                   ""                      "packageAvailable('TeachingDemos')"
        
 menu    ts1Menu       tsmMenu         ""                                      ""                          ""    	""
 item    ts1Menu       command         "Multiplicative Decomposition"              decomMod         "activeDataSetP()"                      "packageAvailable('tseries')"
 item    ts1Menu       command         "Additive Decomposition"              decomaMod         "activeDataSetP()"                      "packageAvailable('tseries')"
+item    ts1Menu       command         "Decomposition:Both"              decomModcom         "activeDataSetP()"                      "packageAvailable('tseries')"
 
 menu    ts2Menu       tsmMenu         ""                                      ""                          ""    	""
 item    ts2Menu       command         "ARIMA Models..."              ArimaMod         "activeDataSetP()"                      "packageAvailable('tseries')"
@@ -45,7 +54,7 @@ menu    ts3Menu       tsmMenu         ""                                      ""
 item    ts3Menu       command          "Forecasts"              predAllModel         "activeDataSetP()"                      "packageAvailable('tseries')"
 
 
-item    ts3Menu       command         "Fore. Accuracy"                 foreMod         "activeDataSetP()"                      "packageAvailable('tseries')"
+item    ts3Menu       command         "Fore. Accuracy"                 forebMod         "activeDataSetP()"                      "packageAvailable('tseries')"
 
 menu    ts4Menu       tsmMenu         ""                                      ""                          ""    	""
 item    ts4Menu       command         "Seasonal Holt Winters"              HoltWintersMod         "activeDataSetP()"                      "packageAvailable('tseries')"
@@ -64,3 +73,6 @@ item    tsmMenu         cascade        "ARIMA/GARCH"                            
 
 
 item    tsmMenu         cascade        "Decomposition"                                 ts1Menu                   ""                      "packageAvailable('TeachingDemos')"
+
+
+

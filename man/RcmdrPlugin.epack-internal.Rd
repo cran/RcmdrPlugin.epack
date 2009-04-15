@@ -32,7 +32,17 @@
 \alias{HoltWintersNonMod}
 \alias{listHoltWintersModels}
 \alias{predAllModel}
-
+\alias{fixa}
+\alias{editTSframe}
+\alias{runbulk}
+\alias{bulkfit}
+\alias{decomModcom}
+\alias{runbulkg}
+\alias{bulkfitg}
+\alias{fore1}
+\alias{mse1}
+\alias{mad1}
+\alias{forebMod}
 
 \description{Internal RcmdrepackPlugin objects.}
 \details{These are not to be called by the user.}

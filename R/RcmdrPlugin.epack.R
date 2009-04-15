@@ -1,6 +1,6 @@
 # Some Rcmdr dialogs for the epack package
 
-# last modified: May 25, 2008 by E. Hodgess
+# last modified: April 15 by E. Hodgess
 
 # Note: the following function (with contributions from Richard Heiberger) 
 # can be included in any Rcmdr plug-in package to cause the package to load
@@ -273,8 +273,6 @@ return(z)
 
 
 
-
-
 newHistPrice <- function() {
     initializeDialog(title=gettextRcmdr("New Historical Price"))
     dsname <- tclVar(gettextRcmdr("Dataset"))
@@ -349,10 +347,10 @@ newHistPrice <- function() {
         tkfocus(CommanderWindow())
         }
     OKCancelHelp(helpSubject="get.hist.quote")
-    radioButtons(top, name="alternative", buttons=c("Open", "Close","High","Low"), 
-	values=c("Open", "Close","High","Low"),
+    radioButtons(top, name="alternative", buttons=c("Open", "Close","High","Low","AdjClose"), 
+	values=c("Open", "Close","High","Low","AdjClose"),
         labels=gettextRcmdr(c("Obtain Open Price", "Obtain Closing Price",
-	"Obtain High Price","Obtain Low Price")), 
+	"Obtain High Price","Obtain Low Price","Obtain Adj Closing Price")), 
         title=gettextRcmdr("Price Options"))
   
   rightFrame <- tkframe(top)
@@ -379,6 +377,9 @@ tkgrid.configure(endd1,sticky="w")
 
     dialogSuffix(rows=10, columns=2, focus=entryDsname)
     }
+
+
+
 
 
 bcMod <- function(){
@@ -739,7 +740,7 @@ pred4 <- pred1[,1]*xs1
 pred5 <- pred4 - pred2
 pred6 <- pred4 + pred2
 pred.df <- data.frame(pred=pred4,lower=pred5,upper=pred6)
-
+cat("Multiplicative","\n")
 print(pred.df)
 }
 #x1 <- data.frame(x1,deas=dy,
@@ -800,8 +801,7 @@ foreMod <- function(){
 garchMod <- function(){
  initializeDialog(title=gettextRcmdr("GARCH Models"))
    .activeModel <- ActiveModel()
-	print(.activeModel)
-    currentModel <- if (!is.null(.activeModel)) 
+	    currentModel <- if (!is.null(.activeModel)) 
         eval(parse(text=paste("class(", .activeModel, ")[1] == 'garch'", sep="")), 
             envir=.GlobalEnv) 
         else FALSE
@@ -1397,4 +1397,295 @@ doItAndPrint(paste("predict(", model,",prediction.interval=T,n.ahead=",fore1,
     tkgrid(buttonsFrame, columnspan=2, sticky="w")
     dialogSuffix(rows=3, columns=2)
     }
+
+
+fixa <- function(x)
+{
+tsa <- tsp(x[,1])
+y <- edit(as.matrix(x))
+y <- data.frame(y)
+for(i in 1:ncol(y)) {
+y[,i] <- ts(y[,i],start=tsa[1],freq=tsa[3])
+}
+return(y)
+}
+
+
+
+
+editTSframe <- function() {
+    initializeDialog(title=gettextRcmdr("Edit TS Data"))
+    dsname <- tclVar(gettextRcmdr("Dataset"))
+   
+    entryDsname <- tkentry(top, width="20", textvariable=dsname)
+    onOK <- function(){
+        dsnameValue <- trim.blanks(tclvalue(dsname))
+        if (dsnameValue == "") {
+            errorCondition(recall=editTSframe, 
+                message=gettextRcmdr("You must enter the name of a data set."))  
+            return()
+            }  
+        if (!is.valid.name(dsnameValue)) {
+            errorCondition(recall=newDataSet,
+                message=paste('"', dsnameValue, '" ', gettextRcmdr("is not a valid name."), sep=""))
+            return()
+            }
+        if (is.element(dsnameValue, listDataSets())) {
+            if ("no" == tclvalue(checkReplace(dsnameValue, gettextRcmdr("Data set")))){
+                newDataSet()
+                return()
+                }
+            }
+  	command <- paste('fixa(',dsnameValue,')',sep="")
+	assign(dsnameValue, justDoIt(command), envir=.GlobalEnv)
+
+        logger(paste(dsnameValue, "<-", command))
+      if (eval(parse(text=paste("nrow(", dsnameValue, ")"))) == 0){
+            errorCondition(recall=editTSframe, message=gettextRcmdr("empty data set."))
+            return()
+            }
+        activeDataSet(dsnameValue)
+        closeDialog()
+        tkfocus(CommanderWindow())
+        }
+    OKCancelHelp(helpSubject="edit")
+  
+  rightFrame <- tkframe(top)
+    tkgrid(tklabel(top, text=gettextRcmdr("Enter name for data set:")), entryDsname, sticky="e")
+    tkgrid(buttonsFrame, columnspan="2", sticky="w")
+  
+    tkgrid.configure(entryDsname, sticky="w")
+    dialogSuffix(rows=10, columns=2, focus=entryDsname)
+    }
+
+
+bulkfit <- function(x) {
+w <- matrix(0,nrow=27,ncol=4)
+ii <- 0
+for(i in 0:2) {
+	for(k in 0:2) {
+	for(j in 0:2) {
+		ii <- ii + 1
+		fit <- try(arima(x,order=c(i,k,j)),silent=TRUE)
+	
+			if(inherits(fit,"try-error")) {
+				w[ii,4] <- 99999 	
+				}
+			else {
+			w[ii,4] <- fit$aic
+			w[ii,1] <- i
+			w[ii,2] <- k	
+			w[ii,3] <- j
+		
+		}
+		}
+		}
+	}
+	
+	dimnames(w) <- list(NULL,c("ar","d","ma","AIC"))
+	xxx <- which(w[,4]==min(w[,4]))[1]
+return(list(res=w,min=w[xxx,]))
+
+}
+
+
+
+
+decomModcom <- function(){
+    initializeDialog(title=gettextRcmdr("Decomposition: Both Versions"))
+    xBox <- variableListBox(top, Numeric(), title=gettextRcmdr("Variable (pick one)"))
+ 
+    onOK <- function(){
+        x <- getSelection(xBox)
+        if (length(x) == 0){
+            errorCondition(recall=decomModcom, message=gettextRcmdr("You must select a variable."))
+            return()
+            }
+   
+        freq1 <- tclvalue(freqVariable)
+        fore1 <- tclvalue(foreVariable)
+        closeDialog()
+	command <- print("Multiplicative")
+	logger(command)
+        doItAndPrint(paste("decom5(", ActiveDataSet(), "$", x,
+            ",se1=",freq1,",fore1=",fore1,
+            ")", sep=""))
+	command <- print("Additive")
+	logger(command)
+  doItAndPrint(paste("decom6(", ActiveDataSet(), "$", x,
+            ",se1=",freq1,",fore1=",fore1,
+            ")", sep=""))
+           
+
+   tkdestroy(top)
+        tkfocus(CommanderWindow())
+        }
+    OKCancelHelp(helpSubject="t.test")
+    freqFrame <- tkframe(top)
+    freqVariable <- tclVar("1")
+    freqField <- tkentry(freqFrame, width="6", textvariable=freqVariable)
+    foreFrame <- tkframe(top)
+    foreVariable <- tclVar("0")
+    foreField <- tkentry(foreFrame, width="8", textvariable=foreVariable)
+    tkgrid(getFrame(xBox), sticky="nw") 
+    tkgrid(tklabel(foreFrame, text=gettextRcmdr("Number of Forecasts: ")), foreField, sticky="w")
+    tkgrid(foreFrame, sticky="w")
+    tkgrid(tklabel(freqFrame, text=gettextRcmdr("Freq: ")), freqField, sticky="w")
+    tkgrid(freqFrame, sticky="w")
+    tkgrid(buttonsFrame, columnspan=2, sticky="w")
+    tkgrid.configure(freqField, sticky="e")
+    dialogSuffix(rows=4, columns=2)
+    }
+
+
+
+
+
+
+runbulk <- function(){
+  initializeDialog(title=gettextRcmdr("Run Multiple ARIMA models"))
+   xBox <- variableListBox(top, Numeric(), title=gettextRcmdr("Variable (pick one)"))
+    onOK <- function(){
+        x <- getSelection(xBox)
+     if (length(x) == 0){
+            errorCondition(recall=runbulk, message=gettextRcmdr("You must select a variable."))
+            return()
+            }
+        closeDialog()
+    doItAndPrint(paste("bulkfit(", ActiveDataSet(), "$", x,")",sep=""))     
+		
+        tkdestroy(top)
+        tkfocus(CommanderWindow())
+        }
+    OKCancelHelp(helpSubject="arima")
+   tkgrid(getFrame(xBox), sticky="nw") 
+    tkgrid(buttonsFrame, columnspan=2, sticky="w")
+     dialogSuffix(rows=4, columns=2)
+    }
+
+
+runbulkg <- function(){
+  initializeDialog(title=gettextRcmdr("Run Multiple GARCH models"))
+   xBox <- variableListBox(top, Numeric(), title=gettextRcmdr("Variable (pick one)"))
+    onOK <- function(){
+        x <- getSelection(xBox)
+     if (length(x) == 0){
+            errorCondition(recall=runbulkg, message=gettextRcmdr("You must select a variable."))
+            return()
+            }
+        closeDialog()
+    doItAndPrint(paste("bulkfitg(", ActiveDataSet(), "$", x,")",sep=""))     
+		
+        tkdestroy(top)
+        tkfocus(CommanderWindow())
+        }
+    OKCancelHelp(helpSubject="garch")
+   tkgrid(getFrame(xBox), sticky="nw") 
+    tkgrid(buttonsFrame, columnspan=2, sticky="w")
+     dialogSuffix(rows=4, columns=2)
+    }
+
+
+
+bulkfitg <- function(x) {
+w <- matrix(0,nrow=8,ncol=3)
+oldopts <- options()
+options(show.error.messages=FALSE)
+ii <- 0
+for(i in 0:2) {
+	for(j in 0:2) {
+		if(i==0 & j==0)next()
+		ii <- ii + 1
+		cat(i,j,ii,"\n")
+		fit <- try(garch(x,order=c(i,j)),silent=TRUE)
+		if(inherits(fit,"try-error")) {
+				w[ii,3] <- 99999 	
+				}
+			else {
+				if(any(is.nan(fit[[5]])))w[ii,3] <- 99999
+				else {
+				w[ii,3] <- AIC(fit)
+				w[ii,1] <- i
+				w[ii,2] <- j
+			}
+		
+		}
+		}
+	}
+	
+	dimnames(w) <- list(NULL,c("ar","ma","AIC"))
+	xxx <- which(w[,3]==min(w[,3]))[1]
+	options(oldopts)
+return(list(res=w,min=w[xxx,]))
+
+}
+
+
+
+mse1 <- function(x,y) {
+     n1 <- length(x)
+     z <- sum((x-y)^2)/n1
+     return(z)
+}
+
+mad1 <- function(x,y) {
+     n1 <- length(x)
+     z <- sum(abs(x-y))/n1
+     return(z)
+}
+
+
+
+
+ fore1 <- function(x,w,y) {
+        z <- which(names(y) == as.character(x))
+	u <- y[,-z]
+	print("MSE")
+	a <- apply(u,2,mse1,y=w)
+	print(a)
+	print("MAD")
+	b <- apply(u,2,mad1,y=w)
+	print(b)
+	}
+
+
+
+
+
+
+
+forebMod <- function(){
+    initializeDialog(title=gettextRcmdr("Multiple Forecast Accuracy Results"))
+    .numeric <- Numeric()
+    xBox <- variableListBox(top, .numeric, title=gettextRcmdr("First variable (pick one)"))
+     onOK <- function(){
+        x <- getSelection(xBox)
+        if (length(x) == 0){
+            errorCondition(recall=forebMod, message=gettextRcmdr("You must select a variable."))
+            return()
+            }
+       closeDialog()
+        .activeDataSet <- ActiveDataSet()
+	x1 <- as.character(x)
+ #       doItAndPrint(paste("forerr(", .activeDataSet, "$", x, ", ", 
+ #           .activeDataSet, "$", y,
+ #           ")", sep=""))
+
+      doItAndPrint(paste("fore1('",x1,"',", ActiveDataSet(), "$", x, ", ",ActiveDataSet(), 
+            ")", sep=""))
+ 
+
+
+
+        tkfocus(CommanderWindow())
+        }
+
+
+    OKCancelHelp(helpSubject="t.test")
+   tkgrid(getFrame(xBox), sticky="nw")    
+ 
+  tkgrid(buttonsFrame, columnspan=2, sticky="w")
+    dialogSuffix(rows=3, columns=2)
+    }
+
 
