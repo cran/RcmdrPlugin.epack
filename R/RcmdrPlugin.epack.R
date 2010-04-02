@@ -266,7 +266,7 @@ bc2 <- function(x,lam1=seq(-2,2,.1)) {
   require(MASS)
   if(any(x)<=0)stop("Negative values present..no transformations permitted")
   t1 <- 1:length(x)
-  xxx <-boxcox(x~t1,lambda=lam1,plot=F)
+  xxx <-boxcox(x~t1,lambda=lam1,plot=FALSE)
   z <- xxx$x[xxx$y==max(xxx$y)]
 return(z) 
 }
@@ -476,7 +476,10 @@ pacfMod <- function(){
 decomMod <- function(){
     initializeDialog(title=gettextRcmdr("Multiplicative Decomposition"))
     xBox <- variableListBox(top, Numeric(), title=gettextRcmdr("Variable (pick one)"))
- 
+  dsname <- tclVar(gettextRcmdr("Dataset"))
+   
+    entryDsname <- tkentry(top, width="20", textvariable=dsname)
+  
     onOK <- function(){
         x <- getSelection(xBox)
         if (length(x) == 0){
@@ -484,13 +487,32 @@ decomMod <- function(){
             return()
             }
 
-   
+           dsnameValue <- trim.blanks(tclvalue(dsname))
+        if (dsnameValue == "") {
+            errorCondition(recall=editTSframe, 
+                message=gettextRcmdr("You must enter the name of a data set."))  
+            return()
+            }  
+        if (!is.valid.name(dsnameValue)) {
+            errorCondition(recall=newDataSet,
+                message=paste('"', dsnameValue, '" ', gettextRcmdr("is not a valid name."), sep=""))
+            return()
+            }
+        if (is.element(dsnameValue, listDataSets())) {
+            if ("no" == tclvalue(checkReplace(dsnameValue, gettextRcmdr("Data set")))){
+                newDataSet()
+                return()
+                }
+    return() 
+	}   
         freq1 <- tclvalue(freqVariable)
         fore1 <- tclvalue(foreVariable)
         closeDialog()
-        doItAndPrint(paste("decom5(", ActiveDataSet(), "$", x,
+   
+     comm1 <- paste(dsnameValue,"<-decom5(", ActiveDataSet(), "$", x,
             ",se1=",freq1,",fore1=",fore1,
-            ")", sep=""))
+            ")", sep="")
+   	doItAndPrint(comm1)
         tkdestroy(top)
         tkfocus(CommanderWindow())
         }
@@ -506,6 +528,10 @@ decomMod <- function(){
     tkgrid(foreFrame, sticky="w")
     tkgrid(tklabel(freqFrame, text=gettextRcmdr("Freq: ")), freqField, sticky="w")
     tkgrid(freqFrame, sticky="w")
+   tkgrid(tklabel(top, text=gettextRcmdr("Enter name for data set:")), entryDsname, sticky="e")
+  
+    tkgrid.configure(entryDsname, sticky="w")
+ 
     tkgrid(buttonsFrame, columnspan=2, sticky="w")
     tkgrid.configure(freqField, sticky="e")
     dialogSuffix(rows=4, columns=2)
@@ -581,7 +607,7 @@ selectActiveARModel <- function(){
 	}
   #    dataSet <- eval(parse(text=paste("as.character(", model, "$call$data)")))
      dataSet <- eval(parse(text=paste("as.character(", model, "$series)")))
- 	dataset1 <- unlist(strsplit(dataSet,"$",fixed=T))[1]
+ 	dataset1 <- unlist(strsplit(dataSet,"$",fixed=TRUE))[1]
 	dataSet <- dataset1
   if (length(dataSet) == 0){
             errorCondition(message=gettextRcmdr("There is no dataset associated with this model."))
@@ -675,7 +701,7 @@ decom5 <- function(x1,fore1=0,se1=1) {
 #fore1 is the number of forecast periods
 #se1 is the annual frequency
   n1 <- length(x1)
-if(is.ts(x1) !=T){
+if(is.ts(x1) !=TRUE){
   x <- ts(x1,start=1,freq=1)
 }
 else {
@@ -697,13 +723,13 @@ xx <- as.vector(z)
 z1 <- c(NA,xx[-n1])
 w1 <- x/z1
 #w2 <- matrix(w1,nrow=f1)
-#w3 <- apply(w2,1,function(x)mean(x,na.rm=T))
+#w3 <- apply(w2,1,function(x)mean(x,na.rm=TRUE))
 xw <- vector("list",f1)
 for(i in 1:n1) {
   j1 <- ifelse(i%%f1==0,f1,i%%f1)
   xw[[j1]] <- c(xw[[j1]],w1[i])
 }
-w3 <- unlist(lapply(xw,function(x)mean(x,na.rm=T)))
+w3 <- unlist(lapply(xw,function(x)mean(x,na.rm=TRUE)))
 w4 <- sum(w3)/f1
 w3 <- w3/w4
 sea1 <- rep(w3,length=n1)
@@ -740,12 +766,12 @@ pred4 <- pred1[,1]*xs1
 pred5 <- pred4 - pred2
 pred6 <- pred4 + pred2
 pred.df <- data.frame(pred=pred4,lower=pred5,upper=pred6)
-cat("Multiplicative","\n")
 print(pred.df)
+return(data.frame(mult=pred.df$pred))
 }
 #x1 <- data.frame(x1,deas=dy,
 #		trend=trend.ts,seas=sea1,seay=sea2,cycle=cy1,irr=ir1)
-return(NULL)
+return(data.frame(mult=pred.df$pred))
 }
 
 histprice2<- function(inst1,start1="1998-01-01",quot1="Close",end1) {
@@ -940,7 +966,7 @@ decom6 <- function(x1,fore1=0,se1=1) {
 #fore1 is the number of forecast periods
 #se1 is the annual frequency
   n1 <- length(x1)
-if(is.ts(x1) !=T){
+if(is.ts(x1) !=TRUE){
   x <- ts(x1,start=1,freq=1)
 }
 else {
@@ -962,13 +988,13 @@ xx <- as.vector(z)
 z1 <- c(NA,xx[-n1])
 w1 <- x/z1
 #w2 <- matrix(w1,nrow=f1)
-#w3 <- apply(w2,1,function(x)mean(x,na.rm=T))
+#w3 <- apply(w2,1,function(x)mean(x,na.rm=TRUE))
 xw <- vector("list",f1)
 for(i in 1:n1) {
   j1 <- ifelse(i%%f1==0,f1,i%%f1)
   xw[[j1]] <- c(xw[[j1]],w1[i])
 }
-w3 <- unlist(lapply(xw,function(x)mean(x,na.rm=T)))
+w3 <- unlist(lapply(xw,function(x)mean(x,na.rm=TRUE)))
 w4 <- sum(w3)/f1
 w3 <- w3/w4
 sea1 <- rep(w3,length=n1)
@@ -1007,15 +1033,20 @@ pred6 <- pred4 + pred2
 pred.df <- data.frame(pred=pred4,lower=pred5,upper=pred6)
 
 print(pred.df)
+return(data.frame(add=pred.df$pred))
 }
 #x1 <- data.frame(x1,deas=dy,
 #		trend=trend.ts,seas=sea1,seay=sea2,cycle=cy1,irr=ir1)
-return(NULL)
+return(data.frame(add=pred.df$pred))
 }
 
 decomaMod <- function(){
     initializeDialog(title=gettextRcmdr("Additive Decomposition"))
     xBox <- variableListBox(top, Numeric(), title=gettextRcmdr("Variable (pick one)"))
+  dsname <- tclVar(gettextRcmdr("Dataset"))
+   
+    entryDsname <- tkentry(top, width="20", textvariable=dsname)
+   
  
     onOK <- function(){
         x <- getSelection(xBox)
@@ -1023,14 +1054,35 @@ decomaMod <- function(){
             errorCondition(recall=decomMod, message=gettextRcmdr("You must select a variable."))
             return()
             }
-
+          dsnameValue <- trim.blanks(tclvalue(dsname))
+        if (dsnameValue == "") {
+            errorCondition(recall=editTSframe, 
+                message=gettextRcmdr("You must enter the name of a data set."))  
+            return()
+            }  
+        if (!is.valid.name(dsnameValue)) {
+            errorCondition(recall=newDataSet,
+                message=paste('"', dsnameValue, '" ', gettextRcmdr("is not a valid name."), sep=""))
+            return()
+            }
+        if (is.element(dsnameValue, listDataSets())) {
+            if ("no" == tclvalue(checkReplace(dsnameValue, gettextRcmdr("Data set")))){
+                newDataSet()
+                return()
+                }
+    return() 
+	}   
+   
    
         freq1 <- tclvalue(freqVariable)
         fore1 <- tclvalue(foreVariable)
         closeDialog()
-        doItAndPrint(paste("decom6(", ActiveDataSet(), "$", x,
+     
+ comm1 <- paste(dsnameValue,"<-decom6(", ActiveDataSet(), "$", x,
             ",se1=",freq1,",fore1=",fore1,
-            ")", sep=""))
+            ")", sep="")
+   	doItAndPrint(comm1)
+
         tkdestroy(top)
         tkfocus(CommanderWindow())
         }
@@ -1046,6 +1098,10 @@ decomaMod <- function(){
     tkgrid(foreFrame, sticky="w")
     tkgrid(tklabel(freqFrame, text=gettextRcmdr("Freq: ")), freqField, sticky="w")
     tkgrid(freqFrame, sticky="w")
+   tkgrid(tklabel(top, text=gettextRcmdr("Enter name for data set:")), entryDsname, sticky="e")
+  
+    tkgrid.configure(entryDsname, sticky="w")
+ 
     tkgrid(buttonsFrame, columnspan=2, sticky="w")
     tkgrid.configure(freqField, sticky="e")
     dialogSuffix(rows=4, columns=2)
@@ -1336,6 +1392,30 @@ HoltWintersExpoMod <- function(){
     }
 
 
+predar3 <- function(x,fore1=1) {
+
+z <- predict(x,n.ahead=fore1)
+
+zlow <- z$pred - 1.96*z$se
+zup <- z$pred + 1.96*z$se
+
+zz <- data.frame(pred=z$pred,lower=zlow,upper=zup) 
+print(zz)
+return(as.data.frame(zz$pred))
+}
+
+
+predhw <- function(x,fore1=1) {
+
+z <- predict(x,prediction.interval=TRUE,n.ahead=fore1)
+
+
+
+print(z)
+return(as.data.frame(z[,1]))
+}
+
+
 
 predAllModel <- function(){
     models <- listAllModels()
@@ -1357,6 +1437,10 @@ predAllModel <- function(){
     initial <- if (is.null(.activeModel)) NULL else which(.activeModel == models) - 1
     modelsBox <- variableListBox(top, models, title=gettextRcmdr("Models (pick one)"), 
         initialSelection=initial)
+ dsname <- tclVar(gettextRcmdr("Dataset"))
+   
+    entryDsname <- tkentry(top, width="20", textvariable=dsname)
+ 
     onOK <- function(){
         model <- getSelection(modelsBox)
         closeDialog()
@@ -1364,19 +1448,43 @@ predAllModel <- function(){
             tkfocus(CommanderWindow())
             return()
 	}
+       dsnameValue <- trim.blanks(tclvalue(dsname))
+        if (dsnameValue == "") {
+            errorCondition(recall=editTSframe, 
+                message=gettextRcmdr("You must enter the name of a data set."))  
+            return()
+            }  
+        if (!is.valid.name(dsnameValue)) {
+            errorCondition(recall=newDataSet,
+                message=paste('"', dsnameValue, '" ', gettextRcmdr("is not a valid name."), sep=""))
+            return()
+            }
+        if (is.element(dsnameValue, listDataSets())) {
+            if ("no" == tclvalue(checkReplace(dsnameValue, gettextRcmdr("Data set")))){
+                newDataSet()
+                return()
+                }
+     return()
+            }
      activeModel(model)
      fore1 <- tclvalue(foreVariable)
         closeDialog()
  if(  eval(parse(text=paste("class(", model, ")[1] == 'HoltWinters'", sep="")), 
             envir=.GlobalEnv)) {
      
+	   comm1 <- paste(dsnameValue, " <- predhw(", model,",fore1=",fore1,
+            ")", sep="")
+	doItAndPrint(comm1)
 
-doItAndPrint(paste("predict(", model,",prediction.interval=T,n.ahead=",fore1,
-            ")", sep=""))
+
+
+
 	}
 	else {
-	       doItAndPrint(paste("predar3(", model,",fore1=",fore1,
-            ")", sep=""))
+	   comm1 <- paste(dsnameValue, " <- predar3(", model,",fore1=",fore1,
+            ")", sep="")
+	doItAndPrint(comm1)
+
   	}
         tkdestroy(top)
       tkfocus(CommanderWindow())
@@ -1393,7 +1501,10 @@ doItAndPrint(paste("predict(", model,",prediction.interval=T,n.ahead=",fore1,
     tkgrid(getFrame(modelsBox), columnspan="2", sticky="w")
    tkgrid(tklabel(foreFrame, text=gettextRcmdr("Number of Forecasts: ")), foreField, sticky="w")
     tkgrid(foreFrame, sticky="w")
+    tkgrid(tklabel(top, text=gettextRcmdr("Enter name for data set:")), entryDsname, sticky="e")
   
+    tkgrid.configure(entryDsname, sticky="w")
+ 
     tkgrid(buttonsFrame, columnspan=2, sticky="w")
     dialogSuffix(rows=3, columns=2)
     }
@@ -1494,6 +1605,9 @@ return(list(res=w,min=w[xxx,]))
 decomModcom <- function(){
     initializeDialog(title=gettextRcmdr("Decomposition: Both Versions"))
     xBox <- variableListBox(top, Numeric(), title=gettextRcmdr("Variable (pick one)"))
+ dsname <- tclVar(gettextRcmdr("Dataset"))
+   
+    entryDsname <- tkentry(top, width="20", textvariable=dsname)
  
     onOK <- function(){
         x <- getSelection(xBox)
@@ -1501,22 +1615,44 @@ decomModcom <- function(){
             errorCondition(recall=decomModcom, message=gettextRcmdr("You must select a variable."))
             return()
             }
-   
+           dsnameValue <- trim.blanks(tclvalue(dsname))
+        if (dsnameValue == "") {
+            errorCondition(recall=editTSframe, 
+                message=gettextRcmdr("You must enter the name of a data set."))  
+            return()
+            }  
+        if (!is.valid.name(dsnameValue)) {
+            errorCondition(recall=newDataSet,
+                message=paste('"', dsnameValue, '" ', gettextRcmdr("is not a valid name."), sep=""))
+            return()
+            }
+        if (is.element(dsnameValue, listDataSets())) {
+            if ("no" == tclvalue(checkReplace(dsnameValue, gettextRcmdr("Data set")))){
+                newDataSet()
+                return()
+                }
+     return()
+            }
         freq1 <- tclvalue(freqVariable)
         fore1 <- tclvalue(foreVariable)
         closeDialog()
 	command <- print("Multiplicative")
 	logger(command)
-        doItAndPrint(paste("decom5(", ActiveDataSet(), "$", x,
+  comm1 <- paste(".One <-decom5(", ActiveDataSet(), "$", x,
             ",se1=",freq1,",fore1=",fore1,
-            ")", sep=""))
-	command <- print("Additive")
+            ")", sep="")
+   	doItAndPrint(comm1)
+   
+     	command <- print("Additive")
 	logger(command)
-  doItAndPrint(paste("decom6(", ActiveDataSet(), "$", x,
+   comm1 <- paste(".Two <-decom6(", ActiveDataSet(), "$", x,
             ",se1=",freq1,",fore1=",fore1,
-            ")", sep=""))
-           
-
+            ")", sep="")
+   	doItAndPrint(comm1)
+     
+	comm2 <- paste(dsnameValue,"<-cbind(.One,.Two)",sep="")
+	doItAndPrint(comm2)
+	rm(.One,.Two)
    tkdestroy(top)
         tkfocus(CommanderWindow())
         }
@@ -1532,6 +1668,10 @@ decomModcom <- function(){
     tkgrid(foreFrame, sticky="w")
     tkgrid(tklabel(freqFrame, text=gettextRcmdr("Freq: ")), freqField, sticky="w")
     tkgrid(freqFrame, sticky="w")
+  tkgrid(tklabel(top, text=gettextRcmdr("Enter name for data set:")), entryDsname, sticky="e")
+  
+    tkgrid.configure(entryDsname, sticky="w")
+  
     tkgrid(buttonsFrame, columnspan=2, sticky="w")
     tkgrid.configure(freqField, sticky="e")
     dialogSuffix(rows=4, columns=2)
@@ -1639,13 +1779,15 @@ mad1 <- function(x,y) {
 
  fore1 <- function(x,w,y) {
         z <- which(names(y) == as.character(x))
-	u <- y[,-z]
+	u <- y[,-z,drop=FALSE]
 	print("MSE")
 	a <- apply(u,2,mse1,y=w)
 	print(a)
 	print("MAD")
 	b <- apply(u,2,mad1,y=w)
 	print(b)
+	return(data.frame(mse=a,mad=b))
+	
 	}
 
 
@@ -1658,11 +1800,32 @@ forebMod <- function(){
     initializeDialog(title=gettextRcmdr("Multiple Forecast Accuracy Results"))
     .numeric <- Numeric()
     xBox <- variableListBox(top, .numeric, title=gettextRcmdr("First variable (pick one)"))
+ dsname <- tclVar(gettextRcmdr("Dataset"))
+   
+    entryDsname <- tkentry(top, width="20", textvariable=dsname)
+   
      onOK <- function(){
         x <- getSelection(xBox)
         if (length(x) == 0){
             errorCondition(recall=forebMod, message=gettextRcmdr("You must select a variable."))
+		}
+        dsnameValue <- trim.blanks(tclvalue(dsname))
+        if (dsnameValue == "") {
+            errorCondition(recall=editTSframe, 
+                message=gettextRcmdr("You must enter the name of a data set."))  
             return()
+            }  
+        if (!is.valid.name(dsnameValue)) {
+            errorCondition(recall=newDataSet,
+                message=paste('"', dsnameValue, '" ', gettextRcmdr("is not a valid name."), sep=""))
+            return()
+            }
+        if (is.element(dsnameValue, listDataSets())) {
+            if ("no" == tclvalue(checkReplace(dsnameValue, gettextRcmdr("Data set")))){
+                newDataSet()
+                return()
+                }
+     return()
             }
        closeDialog()
         .activeDataSet <- ActiveDataSet()
@@ -1671,10 +1834,9 @@ forebMod <- function(){
  #           .activeDataSet, "$", y,
  #           ")", sep=""))
 
-      doItAndPrint(paste("fore1('",x1,"',", ActiveDataSet(), "$", x, ", ",ActiveDataSet(), 
-            ")", sep=""))
- 
-
+     comm1 <- paste(dsnameValue, "<- fore1('",x1,"',", ActiveDataSet(), "$", x, ", ",ActiveDataSet(), 
+            ")", sep="")
+      doItAndPrint(comm1)
 
 
         tkfocus(CommanderWindow())
@@ -1683,6 +1845,10 @@ forebMod <- function(){
 
     OKCancelHelp(helpSubject="t.test")
    tkgrid(getFrame(xBox), sticky="nw")    
+   tkgrid(tklabel(top, text=gettextRcmdr("Enter name for data set:")), entryDsname, sticky="e")
+  
+    tkgrid.configure(entryDsname, sticky="w")
+  
  
   tkgrid(buttonsFrame, columnspan=2, sticky="w")
     dialogSuffix(rows=3, columns=2)

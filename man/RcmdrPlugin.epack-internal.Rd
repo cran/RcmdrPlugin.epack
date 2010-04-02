@@ -43,6 +43,7 @@
 \alias{mse1}
 \alias{mad1}
 \alias{forebMod}
+\alias{predhw}
 
 \description{Internal RcmdrepackPlugin objects.}
 \details{These are not to be called by the user.}
