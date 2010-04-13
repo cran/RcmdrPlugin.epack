@@ -1051,12 +1051,12 @@ decomaMod <- function(){
     onOK <- function(){
         x <- getSelection(xBox)
         if (length(x) == 0){
-            errorCondition(recall=decomMod, message=gettextRcmdr("You must select a variable."))
+            errorCondition(recall=decomaMod, message=gettextRcmdr("You must select a variable."))
             return()
             }
           dsnameValue <- trim.blanks(tclvalue(dsname))
         if (dsnameValue == "") {
-            errorCondition(recall=editTSframe, 
+            errorCondition(recall=decomaMod, 
                 message=gettextRcmdr("You must enter the name of a data set."))  
             return()
             }  
@@ -1852,6 +1852,129 @@ forebMod <- function(){
  
   tkgrid(buttonsFrame, columnspan=2, sticky="w")
     dialogSuffix(rows=3, columns=2)
+    }
+
+
+
+subMod <- function(){
+  initializeDialog(title=gettextRcmdr("Plot Plus Subset"))
+    xBox <- variableListBox(top, Numeric(), title=gettextRcmdr("Variable (pick one)"))
+    onOK <- function(){
+        x <- getSelection(xBox)
+	print(x)
+        if (length(x) == 0){
+            errorCondition(recall=subMod, message=gettextRcmdr("You must select a variable."))
+            return()
+            }
+        closeDialog()
+    doItAndPrint(paste("ts.plot(", ActiveDataSet(), "$", x,")",sep=""))     
+	 comm1 <- paste("plotsub(", ActiveDataSet(), "$", x,
+              ")", sep="")
+   	doItAndPrint(comm1)
+     
+	
+        tkdestroy(top)
+        tkfocus(CommanderWindow())
+        }
+    OKCancelHelp(helpSubject="ts.plot")
+   tkgrid(getFrame(xBox), sticky="nw") 
+    tkgrid(buttonsFrame, columnspan=2, sticky="w")
+     dialogSuffix(rows=4, columns=2)
+    }
+
+plotsub <- function(x) {
+plot(x)
+z <- locator(2)
+plot(window(x,start=min(z$x),end=max(z$x)))
+}
+
+aggConv <- function(){
+    initializeDialog(title=gettextRcmdr("Low Frequency Aggregation"))
+    xBox <- variableListBox(top, Numeric(), title=gettextRcmdr("Variable (pick one)"))
+  dsname <- tclVar(gettextRcmdr("Dataset"))
+   
+    entryDsname <- tkentry(top, width="20", textvariable=dsname)
+ 
+ 
+    onOK <- function(){
+        x <- getSelection(xBox)
+        if (length(x) == 0){
+            errorCondition(recall=aggConv, message=gettextRcmdr("You must select a variable."))
+            return()
+            }
+        dsnameValue <- trim.blanks(tclvalue(dsname))
+        if (dsnameValue == "") {
+            errorCondition(recall=aggConv, 
+                message=gettextRcmdr("You must enter the name of a data set."))  
+            return()
+            }  
+        if (!is.valid.name(dsnameValue)) {
+            errorCondition(recall=newDataSet,
+                message=paste('"', dsnameValue, '" ', gettextRcmdr("is not a valid name."), sep=""))
+            return()
+            }
+        if (is.element(dsnameValue, listDataSets())) {
+            if ("no" == tclvalue(checkReplace(dsnameValue, gettextRcmdr("Data set")))){
+                newDataSet()
+                return()
+                }
+            }
+  alternative <- as.character(tclvalue(alternativeVariable))
+      
+ alternativea <- as.character(tclvalue(alternativeaVariable))
+  
+
+     alt1 <- paste("",alternative,"",sep="")
+          alt2 <- paste("",alternativea,"",sep="")
+        closeDialog()
+
+  	comma <- paste(ActiveDataSet(),"$",x,sep="")
+	comm3 <- paste("ep <- endpoints(",comma,",on='",alt2,"')",sep="")
+     	doItAndPrint(comm3)
+ 
+ # logger(paste(comm1, " <- ", command, sep=""))
+	
+	comm2 <- paste(dsnameValue, " <- data.frame(ts=period.apply(as.xts(", comma,"),ep,",alt1,"))", sep="")
+     
+      comm4 <- paste(".One <- period.apply(as.xts(", comma,"),ep,",alt1,")", sep="")
+      doItAndPrint(comm4)
+      comm5 <- paste(dsnameValue, "<- data.frame(x=1:(length(ep)-1))",sep="")
+     doItAndPrint(comm5)
+      comm6 <- paste(dsnameValue,"$x <- zoo(.One)",sep="")
+     doItAndPrint(comm6)
+    
+     #  assign(comm1, justDoIt(command), envir=.GlobalEnv)
+     
+ 
+      tkdestroy(top)
+        tkfocus(CommanderWindow())
+        }
+    OKCancelHelp(helpSubject="period.apply")
+    radioButtons(top, name="alternative", buttons=c("Sum", "Mean","Min","Max"), 
+	values=c("sum", "mean","min","max"),
+        labels=gettextRcmdr(c("Sum", "Mean",
+	"Minimum","Maximum")), 
+        title=gettextRcmdr("Aggregation Options"))
+
+ rightFrame <- tkframe(top)
+   tkgrid(alternativeFrame, rightFrame, sticky="nw")
+   
+     tkgrid(getFrame(xBox), sticky="nw") 
+    tkgrid(tklabel(top, text=gettextRcmdr("Enter name for data set:")), entryDsname, sticky="e")
+ 
+    radioButtons(top, name="alternativea", buttons=c("Months", "Quarters","Years"), 
+	values=c("months", "quarters","years"),
+        labels=gettextRcmdr(c("Months",
+	"Quarters","Years")), 
+        title=gettextRcmdr("Time  Options"))
+
+ rightFrame1 <- tkframe(top)
+   tkgrid(alternativeaFrame, rightFrame1, sticky="nw")
+
+
+
+    tkgrid(buttonsFrame, columnspan=2, sticky="w")
+    dialogSuffix(rows=4, columns=2)
     }
 
 

@@ -14,6 +14,10 @@ item    tsdMenu       command         "Box Cox Trans"              bcMod        
 item    tsdMenu       command         "Edit TS Data"              editTSframe         ""                      "packageAvailable('relimp')"
 
 
+item    tsdMenu       command         "Temporal Aggregation"              aggConv         ""                      "packageAvailable('xts')"
+
+
+
 
 item    topMenu         cascade         "Ts-Data"                                 tsdMenu                   ""                      "packageAvailable('TeachingDemos')"
 
@@ -23,6 +27,8 @@ item    topMenu         cascade         "Ts-Data"                               
 
 
 item    graphsMenu       command         "epack-Time Series Plots"              opMod         "activeDataSetP()"                      "packageAvailable('tseries')"
+
+item    graphsMenu       command         "epack-Time Series Plot and Subset"              subMod         "activeDataSetP()"                      "packageAvailable('tseries')"
 
 item    graphsMenu       command         "epack-Autocorrelation Plots"              acfMod         "activeDataSetP()"                      "packageAvailable('tseries')"
 

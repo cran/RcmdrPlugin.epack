@@ -44,6 +44,12 @@
 \alias{mad1}
 \alias{forebMod}
 \alias{predhw}
+\alias{subMod}
+\alias{plotsub}
+\alias{aggConv}
+
+
+
 
 \description{Internal RcmdrepackPlugin objects.}
 \details{These are not to be called by the user.}
