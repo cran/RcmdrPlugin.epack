@@ -30,6 +30,8 @@ item    graphsMenu       command         "epack-Time Series Plots"              
 
 item    graphsMenu       command         "epack-Time Series Plot and Subset"              subMod         "activeDataSetP()"                      "packageAvailable('tseries')"
 
+
+
 item    graphsMenu       command         "epack-Autocorrelation Plots"              acfMod         "activeDataSetP()"                      "packageAvailable('tseries')"
 
 item    graphsMenu       command         "epack-Partial Autocorrelation Plots"              pacfMod         "activeDataSetP()"                      "packageAvailable('tseries')"
@@ -52,12 +54,12 @@ item    ts1Menu       command         "Additive Decomposition"              deco
 item    ts1Menu       command         "Decomposition:Both"              decomModcom         "activeDataSetP()"                      "packageAvailable('tseries')"
 
 menu    ts2Menu       tsmMenu         ""                                      ""                          ""    	""
-item    ts2Menu       command         "ARIMA Models..."              ArimaMod         "activeDataSetP()"                      "packageAvailable('tseries')"
+item    ts2Menu       command         "ARIMA Models..."              ArimaMod         "activeDataSetP()"                      "packageAvailable('forecast')"
 item    ts2Menu       command         "GARCH Models"                 garchMod         "activeDataSetP()"                      "packageAvailable('tseries')"
 
 
 menu    ts3Menu       tsmMenu         ""                                      ""                          ""    	""
-item    ts3Menu       command          "Forecasts"              predAllModel         "activeDataSetP()"                      "packageAvailable('tseries')"
+item    ts3Menu       command          "Forecasts"              predAllModel         "activeDataSetP()"                      "packageAvailable('forecast')"
 
 
 item    ts3Menu       command         "Fore. Accuracy"                 forebMod         "activeDataSetP()"                      "packageAvailable('tseries')"

@@ -1,6 +1,6 @@
 # Some Rcmdr dialogs for the epack package
 
-# last modified: April 15 by E. Hodgess
+# last modified: June 7, 2010 by E. Hodgess
 
 # Note: the following function (with contributions from Richard Heiberger) 
 # can be included in any Rcmdr plug-in package to cause the package to load
@@ -21,121 +21,6 @@
     
    
 
-
-
-Arima <- function(){
-options(Rcmdr=list(check.packages=FALSE)) 
-require(tseries)
-require(TeachingDemos)
-initializeDialog(title=gettextRcmdr("ARIMA Simulation"))
-    dsname <- tclVar(gettextRcmdr("Dataset"))
-    entryDsname <- tkentry(top, width="20", textvariable=dsname)
-    nVar <- tclVar("100")
-    nEntry <- tkentry(top, width="6", textvariable=nVar)
-    pVar <- tclVar("1")
-    pEntry <- tkentry(top, width="6", textvariable=pVar)
-    dVar <- tclVar("0")
-    dEntry <- tkentry(top, width="6", textvariable=dVar)
-    qVar <- tclVar("1")
-    qEntry <- tkentry(top, width="6", textvariable=qVar)
-    ar1Var <- tclVar("0.5")
-    ar1Entry <- tkentry(top, width="6", textvariable=ar1Var)
-    ma1Var <- tclVar("-0.3")
-    ma1Entry <- tkentry(top, width="6", textvariable=ma1Var)
-
-    onOK <- function(){
-         dsnameValue <- trim.blanks(tclvalue(dsname))
-        if (dsnameValue == "") {
-            errorCondition(recall=Arima, 
-                message=gettextRcmdr("You must enter the name of a data set."))  
-            return()
-            }  
-        if (!is.valid.name(dsnameValue)) {
-            errorCondition(recall=Arima,
-                message=paste('"', dsnameValue, '" ', gettextRcmdr("is not a valid name."), sep=""))
-            return()
-            }
-        if (is.element(dsnameValue, listDataSets())) {
-            if ("no" == tclvalue(checkReplace(dsnameValue, gettextRcmdr("Data set")))){
-                newDataSet()
-                return()
-                }
-            }
-    
-        n <- round(as.numeric(tclvalue(nVar)))
-        if (is.na(n) || n <= 0){
-            errorCondition(recall=Arima, message="Length must be a 
-			positive number.")
-            return()
-            }
-        p  <- as.numeric(tclvalue(pVar))
-        if (is.na(p) || p < 0){
-            errorCondition(recall=Arima, 
-                message="AR Order must be a non-negative number.")
-            return()
-            }
-        d  <- as.numeric(tclvalue(dVar))
-        if (is.na(d) || d < 0){
-            errorCondition(recall=Arima, 
-                message="Diff Order must be a non-negative number.")
-            return()
-            }
-         q  <- as.numeric(tclvalue(qVar))
-        if (is.na(q) || q < 0){
-            errorCondition(recall=Arima, 
-                message="MA Order must be a non-negative number.")
-            return()
-            }
-   ar1  <- as.numeric(tclvalue(ar1Var))
-        if (ar1 <= -1 || ar1 >= 1){
-            errorCondition(recall=Arima, 
-                message="-1 < AR < 1")
-            return()
-            }
-  
-   ma1  <- as.numeric(tclvalue(ma1Var))
-        if (ma1 <= -1 || ma1 >= 1) {
-            errorCondition(recall=Arima, 
-                message="-1 < MA < 1")
-            return()
-            }
-       command <- paste("data.frame(y=arima.sim(list(order=c(",p,",",d,",",q,"), 
-		ar=",ar1,",ma=",ma1,"), n= ",n,"))",
-	      sep="")
-          assign(dsnameValue, justDoIt(command), envir=.GlobalEnv)
-        logger(paste(dsnameValue, "<- ", command,")"))
-      if (eval(parse(text=paste("nrow(", dsnameValue, ")"))) == 0){
-            errorCondition(recall=Arima, message=gettextRcmdr("empty data set."))
-            return()
-            }
-        activeDataSet(dsnameValue)
-   closeDialog()
-         tkfocus(CommanderWindow())
-        }
-
-    OKCancelHelp(helpSubject="arima.sim")
-
-  tkgrid(tklabel(top, text=gettextRcmdr("Enter name for data set:")), entryDsname, sticky="e")
-  
-      tkgrid(tklabel(top, text="Series Length"), nEntry, sticky="e")
-    tkgrid(tklabel(top, text="AR Order"), pEntry, sticky="e")
-    tkgrid(tklabel(top, text="Diff Order"), dEntry, sticky="e")
-    tkgrid(tklabel(top, text="MA Order"), qEntry, sticky="e")
-    tkgrid(tklabel(top, text="AR Coef"), ar1Entry, sticky="e")
-    tkgrid(tklabel(top, text="MA Coef"), ma1Entry, sticky="e")
-   tkgrid(buttonsFrame, sticky="w", columnspan=2)
-  tkgrid.configure(entryDsname, sticky="w")
-  
-    tkgrid.configure(dsname,sticky="w")
-    tkgrid.configure(nEntry, sticky="w")
-    tkgrid.configure(pEntry, sticky="w")
-    tkgrid.configure(dEntry, sticky="w")
-    tkgrid.configure(qEntry, sticky="w")
-    tkgrid.configure(ar1Entry, sticky="w")
-    tkgrid.configure(ma1Entry, sticky="w")    
-    dialogSuffix(rows=8, columns=2, focus=entryDsname)
-    }
-    
 
 
 
@@ -194,7 +79,7 @@ ArimaMod <- function(){
       pd1 <- paste("tsp(",ActiveDataSet(),"$",x,")[3]",sep="")
 
 	assign("pd2",justDoIt(pd1),envir=.GlobalEnv)
-    command <- paste("arima(", ActiveDataSet(), "$", x,",order=c(",AR1,",",DIF1,",",MA1,"),
+    command <- paste("Arima(", ActiveDataSet(), "$", x,",order=c(",AR1,",",DIF1,",",MA1,"),
 		include.mean=",alternative,",seasonal=list(order=c(",SAR1,",",SDIF1,",",SMA1
 		,"),period=",pd2,"))",sep="")
     
@@ -649,6 +534,21 @@ predARModel <- function(){
         tkfocus(CommanderWindow())
         return()
         }
+ dsname <- tclVar(gettextRcmdr("Dataset"))
+   
+    entryDsname <- tkentry(top, width="20", textvariable=dsname)
+  
+          dsnameValue <- trim.blanks(tclvalue(dsname))
+        if (dsnameValue == "") {
+            errorCondition(recall=decomaMod, 
+                message=gettextRcmdr("You must enter the name of a data set."))  
+            return()
+            }  
+        if (!is.valid.name(dsnameValue)) {
+            errorCondition(recall=newDataSet,
+                message=paste('"', dsnameValue, '" ', gettextRcmdr("is not a valid name."), sep=""))
+            return()
+            }
     initializeDialog(title=gettextRcmdr("ARIMA Forecasting"))
     .activeDataSet <- ActiveDataSet()
     initial <- if (is.null(.activeModel)) NULL else which(.activeModel == models) - 1
@@ -661,10 +561,11 @@ predARModel <- function(){
             tkfocus(CommanderWindow())
             return()
 	}
+
      activeModel(model)
      fore1 <- tclvalue(foreVariable)
         closeDialog()
-        doItAndPrint(paste("predar3(", model,",fore1=",fore1,
+        doItAndPrint(paste("forecast.Arima(", model,",fore1=",fore1,
             ")", sep=""))
         tkdestroy(top)
       tkfocus(CommanderWindow())
@@ -679,6 +580,9 @@ predARModel <- function(){
         tklabel(nameFrame, text=tclvalue(getRcmdr("modelName"))), sticky="w")
     tkgrid(nameFrame, sticky="w", columnspan="2")
     tkgrid(getFrame(modelsBox), columnspan="2", sticky="w")
+    tkgrid(tklabel(top,text=gettextRcmdr("New Data set name")),
+	entryDsname,sticky="e")
+   
    tkgrid(tklabel(foreFrame, text=gettextRcmdr("Number of Forecasts: ")), foreField, sticky="w")
     tkgrid(foreFrame, sticky="w")
   
@@ -1394,13 +1298,12 @@ HoltWintersExpoMod <- function(){
 
 predar3 <- function(x,fore1=1) {
 
-z <- predict(x,n.ahead=fore1)
+z <- forecast.Arima(x,h=fore1)
 
-zlow <- z$pred - 1.96*z$se
-zup <- z$pred + 1.96*z$se
-
-zz <- data.frame(pred=z$pred,lower=zlow,upper=zup) 
-print(zz)
+zlow <- z$lower
+zup <- z$upper
+zz <- data.frame(pred=z$mean,lower=zlow,upper=zup) 
+plot(z)
 return(as.data.frame(zz$pred))
 }
 
@@ -1440,7 +1343,7 @@ predAllModel <- function(){
  dsname <- tclVar(gettextRcmdr("Dataset"))
    
     entryDsname <- tkentry(top, width="20", textvariable=dsname)
- 
+
     onOK <- function(){
         model <- getSelection(modelsBox)
         closeDialog()
@@ -1448,7 +1351,8 @@ predAllModel <- function(){
             tkfocus(CommanderWindow())
             return()
 	}
-       dsnameValue <- trim.blanks(tclvalue(dsname))
+
+        dsnameValue <- trim.blanks(tclvalue(dsname))
         if (dsnameValue == "") {
             errorCondition(recall=editTSframe, 
                 message=gettextRcmdr("You must enter the name of a data set."))  
@@ -1464,8 +1368,9 @@ predAllModel <- function(){
                 newDataSet()
                 return()
                 }
-     return()
-            }
+	return()
+}
+
      activeModel(model)
      fore1 <- tclvalue(foreVariable)
         closeDialog()
@@ -1975,6 +1880,147 @@ aggConv <- function(){
 
     tkgrid(buttonsFrame, columnspan=2, sticky="w")
     dialogSuffix(rows=4, columns=2)
+    }
+
+ArimaModIn <- function(){
+ initializeDialog(title=gettextRcmdr("Interactive ARIMA Models"))
+ 
+  xBox <- variableListBox(top, Numeric(), title=gettextRcmdr("Variable (pick one)"))
+  
+    onOK <- function(){
+	         x <- getSelection(xBox)
+       if (length(x) == 0){
+            errorCondition(recall=ArimaModIn, message=gettextRcmdr("You must select a variable."))
+            return()
+            }
+         AR1 <- tclvalue(ARLevel)
+        MA1 <- tclvalue(MAVariable)
+	DIF1 <- tclvalue(DIFVariable)
+    
+	SAR1 <- tclvalue(SARLevel)
+        SMA1 <- tclvalue(SMAVariable)
+	SDIF1 <- tclvalue(SDIFVariable)
+ 
+   alternative <- as.character(tclvalue(alternativeVariable))
+ 	 closeDialog() 
+    
+         
+      pd1 <- paste("tsp(",ActiveDataSet(),"$",x,")[3]",sep="")
+
+	assign("pd2",justDoIt(pd1),envir=.GlobalEnv)
+    command <- paste("fit <- arima(", ActiveDataSet(), "$", x,",order=c(",AR1,",",DIF1,",",MA1,"),
+		include.mean=",alternative,",seasonal=list(order=c(",SAR1,",",SDIF1,",",SMA1
+		,"),period=",pd2,"))",sep="")
+    
+ 
+  
+#doItAndPrint(paste("ts.plot(", ActiveDataSet(), "$", x,")",sep=""))     
+doItAndPrint(paste("fit1 <- predict(fit,n.ahead=7)",sep=""))        
+
+         tkdestroy(top)
+        tkfocus(CommanderWindow())
+        }
+    OKCancelHelp(helpSubject="arima")
+   radioButtons(top, name="alternative", buttons=c("yes","no"), values=c(TRUE,FALSE),
+        labels=gettextRcmdr(c("Mean Included","Mean Not Included")), 
+        title=gettextRcmdr("Mean"))
+      rightFrame <- tkframe(top)
+    ARFrame <- tkframe(rightFrame)
+    ARLevel <- tclVar("0")
+    ARField <- tkentry(ARFrame, width="6", textvariable=ARLevel)
+    MAFrame <- tkframe(rightFrame)
+    MAVariable <- tclVar("0")
+    MAField <- tkentry(MAFrame, width="6", textvariable=MAVariable)
+    DIFFrame <- tkframe(rightFrame)
+    DIFVariable <- tclVar("0")
+    DIFField <- tkentry(DIFFrame,width="6",textvariable=DIFVariable)
+ 
+    SARFrame <- tkframe(rightFrame)
+    SARLevel <- tclVar("0")
+    SARField <- tkentry(SARFrame, width="6", textvariable=SARLevel)
+    SMAFrame <- tkframe(rightFrame)
+    SMAVariable <- tclVar("0")
+    SMAField <- tkentry(SMAFrame, width="6", textvariable=SMAVariable)
+    SDIFFrame <- tkframe(rightFrame)
+    SDIFVariable <- tclVar("0")
+    SDIFField <- tkentry(SDIFFrame,width="6",textvariable=SDIFVariable)
+
+
+    tkgrid(getFrame(xBox), sticky="nw") 
+    tkgrid(tklabel(rightFrame, text=""), sticky="w")   
+   tkgrid(tklabel(ARFrame, text=gettextRcmdr("Reg. AR Order ")), ARField, sticky="w")
+    tkgrid(ARFrame, sticky="w")
+    tkgrid(tklabel(DIFFrame,text=gettextRcmdr("Reg. Diff Order ")),DIFField, sticky="w")
+    tkgrid(DIFFrame,sticky="w")
+    tkgrid(tklabel(MAFrame, text=gettextRcmdr("Reg. MA Order")), MAField, sticky="w")
+    tkgrid(MAFrame, sticky="w")
+  
+   tkgrid(tklabel(SARFrame, text=gettextRcmdr("Sea. AR Order ")), SARField, sticky="w")
+    tkgrid(SARFrame, sticky="w")
+    tkgrid(tklabel(SDIFFrame,text=gettextRcmdr("Sea. Diff Order ")),SDIFField, sticky="w")
+    tkgrid(SDIFFrame,sticky="w")
+    tkgrid(tklabel(SMAFrame, text=gettextRcmdr("Sea. MA Order")), SMAField, sticky="w")
+    tkgrid(SMAFrame, sticky="w")
+ 
+
+   tkgrid(alternativeFrame, rightFrame, sticky="nw")
+ 
+    tkgrid(buttonsFrame, columnspan=2, sticky="w")
+    tkgrid.configure(ARField, sticky="e")
+    dialogSuffix(rows=6, columns=2)
+    }
+
+
+foreAllModel <- function(){
+    models <- listAllModels()
+    .activeModel <- ActiveModel()
+    if ((length(models) == 1) && !is.null(.activeModel)) {
+        Message(message=gettextRcmdr("There is only one model in memory."),
+                type="warning")
+        tkfocus(CommanderWindow())
+        return()
+        }
+    if (length(models) == 0){
+        Message(message=gettextRcmdr("There are no models from which to choose."),
+                type="error")
+        tkfocus(CommanderWindow())
+        return()
+        }
+    initializeDialog(title=gettextRcmdr("Plotting Forecasts"))
+    .activeDataSet <- ActiveDataSet()
+    initial <- if (is.null(.activeModel)) NULL else which(.activeModel == models) - 1
+    modelsBox <- variableListBox(top, models, title=gettextRcmdr("Models (pick one)"), 
+        initialSelection=initial)
+ 
+    onOK <- function(){
+        model <- getSelection(modelsBox)
+        closeDialog()
+        if (length(model) == 0) {
+            tkfocus(CommanderWindow())
+            return()
+	}
+
+
+           
+     activeModel(model)
+	
+
+	   comm1 <- paste("plot.forecast(", model,")", sep="")
+	doItAndPrint(comm1)
+
+          tkdestroy(top)
+      tkfocus(CommanderWindow())
+	}
+    OKCancelHelp()
+    nameFrame <- tkframe(top)
+ 
+    tkgrid(tklabel(nameFrame, fg="blue", text=gettextRcmdr("Current Model: ")), 
+        tklabel(nameFrame, text=tclvalue(getRcmdr("modelName"))), sticky="w")
+    tkgrid(nameFrame, sticky="w", columnspan="2")
+    tkgrid(getFrame(modelsBox), columnspan="2", sticky="w")
+
+    tkgrid(buttonsFrame, columnspan=2, sticky="w")
+    dialogSuffix(rows=3, columns=2)
     }
 
 

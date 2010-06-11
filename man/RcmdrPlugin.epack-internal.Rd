@@ -47,6 +47,10 @@
 \alias{subMod}
 \alias{plotsub}
 \alias{aggConv}
+\alias{ArimaModIn}
+\alias{foreAllModel}
+
+
 
 
 
