@@ -1,22 +1,24 @@
 # Some Rcmdr dialogs for the epack package
 
-# last modified: June 7, 2010 by E. Hodgess
+# last modified: March 31, 2012  by E. Hodgess
 
 # Note: the following function (with contributions from Richard Heiberger) 
 # can be included in any Rcmdr plug-in package to cause the package to load
 # the Rcmdr if it is not already loaded
 
-.First.lib <- function(libname, pkgname){
-    if (!interactive()) return()
-    Rcmdr <- options()$Rcmdr
-    plugins <- Rcmdr$plugins
-    if ((!pkgname %in% plugins) && !getRcmdr("autoRestart")) {
-        Rcmdr$plugins <- c(plugins, pkgname)
-        options(Rcmdr=Rcmdr)
-        closeCommander(ask=FALSE, ask.save=TRUE)
-        Commander()
+
+.onAttach <- function(libname, pkgname){
+        if (!interactive()) return()
+        Rcmdr <- options()$Rcmdr
+        plugins <- Rcmdr$plugins
+        if ((!pkgname %in% plugins) && !getRcmdr("autoRestart")) {
+                Rcmdr$plugins <- c(plugins, pkgname)
+                options(Rcmdr=Rcmdr)
+                closeCommander(ask=FALSE, ask.save=TRUE)
+                Commander()
         }
-    }
+}
+
 
     
    
@@ -606,7 +608,7 @@ decom5 <- function(x1,fore1=0,se1=1) {
 #se1 is the annual frequency
   n1 <- length(x1)
 if(is.ts(x1) !=TRUE){
-  x <- ts(x1,start=1,freq=1)
+  x <- ts(x1,start=1,frequency=1)
 }
 else {
   x <- x1
@@ -637,7 +639,7 @@ w3 <- unlist(lapply(xw,function(x)mean(x,na.rm=TRUE)))
 w4 <- sum(w3)/f1
 w3 <- w3/w4
 sea1 <- rep(w3,length=n1)
-sea1 <- ts(sea1,start=start(x),freq=f1)
+sea1 <- ts(sea1,start=start(x),frequency=f1)
 ab <- f1 - start(x)[2] +2
 sea2 <- sea1[ab:(ab+f1-1)]
 dy <- x/sea1
@@ -650,7 +652,7 @@ dy <- x
 #Begin fitting the trend
 t1 <- 1:n1
 trend.lm <- lm(dy ~ t1)
-trend.ts <- ts(trend.lm$fitted.values,start=start(x),freq=f1)
+trend.ts <- ts(trend.lm$fitted.values,start=start(x),frequency=f1)
 print(trend.lm$coef)
 #Obtain Final Fitted series
 #2/05/2006
@@ -658,7 +660,7 @@ print(trend.lm$coef)
 yhat <- trend.ts*sea1
 #We will get cyclical and irregular values
 cr1 <- x/yhat
-cy1 <- ts(as.vector(filter(cr1,rep(1,3))/3),start=start(x),freq=f1)
+cy1 <- ts(as.vector(filter(cr1,rep(1,3))/3),start=start(x),frequency=f1)
 ir1 <- cr1/cy1
 #Calculate forecasts if needed
 if(fore1 != 0) {
@@ -682,7 +684,7 @@ histprice2<- function(inst1,start1="1998-01-01",quot1="Close",end1) {
 
   library(tseries)
  z <- get.hist.quote(instrument=inst1, start=start1,end=end1,
-                     quote=quot1,comp = "m")
+                     quote=quot1,compression  = "m")
 y <- as.ts(aggregate(z, as.yearmon, tail, 1))
 y.df <- data.frame(y=y,time=time(y))
 y.df$x <- ts(y.df[,1])
@@ -826,7 +828,7 @@ tsConv <- function(){
         closeDialog()
 
     comm1 <- paste(ActiveDataSet(),"$",x,sep="")
-    command <- paste("ts(", ActiveDataSet(), "$", x,",start=c(",year1,",",per1,"),freq=",
+    command <- paste("ts(", ActiveDataSet(), "$", x,",start=c(",year1,",",per1,"),frequency=",
 		freq1,")",sep="")
     
  
@@ -871,7 +873,7 @@ decom6 <- function(x1,fore1=0,se1=1) {
 #se1 is the annual frequency
   n1 <- length(x1)
 if(is.ts(x1) !=TRUE){
-  x <- ts(x1,start=1,freq=1)
+  x <- ts(x1,start=1,frequency=1)
 }
 else {
   x <- x1
@@ -902,7 +904,7 @@ w3 <- unlist(lapply(xw,function(x)mean(x,na.rm=TRUE)))
 w4 <- sum(w3)/f1
 w3 <- w3/w4
 sea1 <- rep(w3,length=n1)
-sea1 <- ts(sea1,start=start(x),freq=f1)
+sea1 <- ts(sea1,start=start(x),frequency=f1)
 ab <- f1 - start(x)[2] +2
 sea2 <- sea1[ab:(ab+f1-1)]
 dy <- x-sea1
@@ -915,7 +917,7 @@ dy <- x
 #Begin fitting the trend
 t1 <- 1:n1
 trend.lm <- lm(dy ~ t1)
-trend.ts <- ts(trend.lm$fitted.values,start=start(x),freq=f1)
+trend.ts <- ts(trend.lm$fitted.values,start=start(x),frequency=f1)
 print(trend.lm$coef)
 #Obtain Final Fitted series
 #2/05/2006
@@ -923,7 +925,7 @@ print(trend.lm$coef)
 yhat <- trend.ts+sea1
 #We will get cyclical and irregular values
 cr1 <- x-yhat
-cy1 <- ts(as.vector(filter(cr1,rep(1,3))/3),start=start(x),freq=f1)
+cy1 <- ts(as.vector(filter(cr1,rep(1,3))/3),start=start(x),frequency=f1)
 ir1 <- cr1-cy1
 #Calculate forecasts if needed
 if(fore1 != 0) {
@@ -1421,7 +1423,7 @@ tsa <- tsp(x[,1])
 y <- edit(as.matrix(x))
 y <- data.frame(y)
 for(i in 1:ncol(y)) {
-y[,i] <- ts(y[,i],start=tsa[1],freq=tsa[3])
+y[,i] <- ts(y[,i],start=tsa[1],frequency=tsa[3])
 }
 return(y)
 }

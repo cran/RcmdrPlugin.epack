@@ -1,0 +1,10 @@
+3e6e61877ad34556a588e26d23ed1dac *DESCRIPTION
+40a41a73e9032cbd7e99eccc36a00a26 *INDEX
+f6e12da1d70ae3f7276e2c9f2ba77883 *NAMESPACE
+5dfc18ed7191392f54f795d98faca5aa *R/RcmdrPlugin.epack.R
+de1693f89d0954e6167be396fe19ef61 *histprice2.R
+9d40d38add961aa985c8a3e99f5ffac9 *inst/etc/backup
+0f519521267c18a46c60bb815764e0fb *inst/etc/menus.txt
+849f3995c49f8039a1b3df8505415b43 *inst/etc/model-classes.txt
+5b030754f8a453dccd8ac0137498daab *man/RcmdrPlugin.epack-internal.Rd
+b8e2f93cef83d0625bf0eecd1f50c11f *man/RcmdrPlugin.epack-package.Rd
